@@ -1,0 +1,24 @@
+This app is used when you are using Route53 for DNS and dsiprouter as a session border controller handling incoming dids from your carrier.
+It may be expanded in the future for more advanced useage of route53 and other dns providers, as well as handling other sbcs
+
+The SBC Status column is for the fusionpbx destinations, showing how many of the total exist in the session border controller. 
+Clicking "UPDATE" will take any checked domains and 
+1) Create a CNAME record for that domain pointing to the fully qualified domain name of the server that was selected in the dropdown.
+2) Create SRV Records for tcp/tls/udp pointing to the fqdn of the selected server
+3) Any "Destinations" that exist in fusionpbx will be sent to the configure dsiprouter instance and pointed at the configured endpoint group or endpoint id.
+Once dsiprouter has been updated, you have to reload kamailio and it will tell you at the top of the page if it needs to be reloaded.
+
+Installation: 
+To install, clone the repository, copy to /var/www/fusiopnbx/app/cluster_manager, run app defaults and permission defaults, configure default settings for dsiprouter api, create aws-config.php in /etc/fusionpbx containing the following with your AWS API key and secret with permissions to edit the correct hostedzone.
+
+<?php
+
+return array(
+           'version' => '2013-04-01',
+           'credentials' => array(
+                  'key'    => 'AKIFEJD2FUDRLAA2M6UN', 
+                  'secret' => 'LxEw4x6fKs7j7asRqLUEb45Tdm0OEuc9H8g/uXv3x',
+             ),
+           'region' => 'us-east-1',
+        );
+

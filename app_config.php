@@ -1,0 +1,112 @@
+<?php
+
+	//application details
+		$apps[$x]['name'] = "Cluster Manager";
+		$apps[$x]['guid'] = "686fc39c-0dcf-4ee5-a098-3b7aa6291a20";
+		$apps[$x]['category'] = "App";
+		$apps[$x]['subcategory'] = "";
+		$apps[$x]['version'] = "1.0";
+		$apps[$x]['license'] = "Mozilla Public License 1.1";
+		$apps[$x]['url'] = "http://www.fusionpbx.com";
+		$apps[$x]['description']['en-us'] = "Manage a fusionpbx cluster's sbc and dns routing";
+		$apps[$x]['description']['en-gb'] = "Manage a fusionpbx cluster's sbc and dns routing";
+		$apps[$x]['description']['ar-eg'] = "";
+		$apps[$x]['description']['de-at'] = "";
+		$apps[$x]['description']['de-ch'] = "";
+		$apps[$x]['description']['de-de'] = "";
+		$apps[$x]['description']['es-cl'] = "";
+		$apps[$x]['description']['es-mx'] = "";
+		$apps[$x]['description']['fr-ca'] = "";
+		$apps[$x]['description']['fr-fr'] = "";
+		$apps[$x]['description']['he-il'] = "";
+		$apps[$x]['description']['it-it'] = "";
+		$apps[$x]['description']['nl-nl'] = "";
+		$apps[$x]['description']['pl-pl'] = "";
+		$apps[$x]['description']['pt-br'] = "";
+		$apps[$x]['description']['pt-pt'] = "";
+		$apps[$x]['description']['ro-ro'] = "";
+		$apps[$x]['description']['ru-ru'] = "";
+		$apps[$x]['description']['sv-se'] = "";
+		$apps[$x]['description']['uk-ua'] = "";
+
+	//permission details
+		$y=0;
+		$apps[$x]['permissions'][$y]['name'] = "cluster_view";
+		$apps[$x]['permissions'][$y]['menu']['uuid'] = "4655919d-d360-42a3-afcb-da1c29996e27";
+		$apps[$x]['permissions'][$y]['groups'][] = "superadmin";
+		$y++;
+		$apps[$x]['permissions'][$y]['name'] = "cluster_add";
+		$apps[$x]['permissions'][$y]['groups'][] = "superadmin";
+		$y++;
+		$apps[$x]['permissions'][$y]['name'] = "cluster_edit";
+		$apps[$x]['permissions'][$y]['groups'][] = "superadmin";
+		$y++;
+		$apps[$x]['permissions'][$y]['name'] = 'cluster_all';
+		$apps[$x]['permissions'][$y]['groups'][] = 'superadmin';
+		$y++;
+
+	//default settings
+		$apps[$x]['default_settings'][$y]['default_setting_uuid'] = "9a82121f-9100-41a1-928e-5ea076209b70";
+		$apps[$x]['default_settings'][$y]['default_setting_category'] = "cluster_manager";
+		$apps[$x]['default_settings'][$y]['default_setting_subcategory'] = "HostedZoneId";
+		$apps[$x]['default_settings'][$y]['default_setting_name'] = "text";
+		$apps[$x]['default_settings'][$y]['default_setting_value'] = "";
+		$apps[$x]['default_settings'][$y]['default_setting_enabled'] = "false";
+		$apps[$x]['default_settings'][$y]['default_setting_description'] = "";
+		$y++;
+		$apps[$x]['default_settings'][$y]['default_setting_uuid'] = "cb4a3b46-2bbc-4b40-a8f4-5857a0fcdc08";
+		$apps[$x]['default_settings'][$y]['default_setting_category'] = "cluster_manager";
+		$apps[$x]['default_settings'][$y]['default_setting_subcategory'] = "api_url";
+		$apps[$x]['default_settings'][$y]['default_setting_name'] = "text";
+		$apps[$x]['default_settings'][$y]['default_setting_value'] = "https://dsiprouter.example.com:5000/api/v1";
+		$apps[$x]['default_settings'][$y]['default_setting_enabled'] = "false";
+		$apps[$x]['default_settings'][$y]['default_setting_description'] = "Dsiprouter api endpoint including protocol and port";
+		$y++;
+		$apps[$x]['default_settings'][$y]['default_setting_uuid'] = "2ad3c96c-83d7-420f-970b-cd1d0420b9b3";
+		$apps[$x]['default_settings'][$y]['default_setting_category'] = "cluster_manager";
+		$apps[$x]['default_settings'][$y]['default_setting_subcategory'] = "api_password";
+		$apps[$x]['default_settings'][$y]['default_setting_name'] = "text";
+		$apps[$x]['default_settings'][$y]['default_setting_value'] = "";
+		$apps[$x]['default_settings'][$y]['default_setting_enabled'] = "false";
+		$apps[$x]['default_settings'][$y]['default_setting_description'] = "Dsiprouter api secret";
+		$y++;
+		$apps[$x]['default_settings'][$y]['default_setting_uuid'] = "a05da752-802d-4c97-833b-d04e0010f2ce";
+		$apps[$x]['default_settings'][$y]['default_setting_category'] = "cluster_manager";
+		$apps[$x]['default_settings'][$y]['default_setting_subcategory'] = "node_list";
+		$apps[$x]['default_settings'][$y]['default_setting_name'] = "text";
+		$apps[$x]['default_settings'][$y]['default_setting_value'] = "";
+		$apps[$x]['default_settings'][$y]['default_setting_enabled'] = "false";
+		$apps[$x]['default_settings'][$y]['default_setting_description'] = "Semicolon separated list of nodes. friendlyname:fqdn:endpointid;NYC2:nyc2.example.com:#14";
+		$y++;
+		$apps[$x]['default_settings'][$y]['default_setting_uuid'] = "9f2237f1-9784-464f-b1c7-e0eb3d6f2520";
+		$apps[$x]['default_settings'][$y]['default_setting_category'] = "cluster_manager";
+		$apps[$x]['default_settings'][$y]['default_setting_subcategory'] = "srv_records";
+		$apps[$x]['default_settings'][$y]['default_setting_name'] = "bool";
+		$apps[$x]['default_settings'][$y]['default_setting_value'] = "true";
+		$apps[$x]['default_settings'][$y]['default_setting_enabled'] = "true";
+		$apps[$x]['default_settings'][$y]['default_setting_description'] = "Create SRV records in Route53";
+		$y++;
+
+	// //schema details
+	// 	$y=0;
+	// 	$apps[$x]['db'][$y]['table']['name'] = "v_cluster_manager";
+	// 	$apps[$x]['db'][$y]['table']['parent'] = "";
+	// 	$z=0;
+	// 	$apps[$x]['db'][$y]['fields'][$z]['name'] = "cluster_manager_uuid";
+	// 	$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = "uuid";
+	// 	$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = "text";
+	// 	$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = "char(36)";
+	// 	$apps[$x]['db'][$y]['fields'][$z]['key']['type'] = "primary";
+	// 	$z++;
+	// 	$apps[$x]['db'][$y]['fields'][$z]['name'] = "cluster_manager_endpoint_id";
+	// 	$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = "text";
+	// 	$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = "text";
+	// 	$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = "char(36)";
+	// 	$apps[$x]['db'][$y]['fields'][$z]['description']['en-us'] = "";
+	// 	$z++;
+	// 	$apps[$x]['db'][$y]['fields'][$z]['name'] = "cluster_manager_fqdn";
+	// 	$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = "text";
+	// 	$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = "text";
+	// 	$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = "char(36)";
+	// 	$apps[$x]['db'][$y]['fields'][$z]['description']['en-us'] = "";
+?>
