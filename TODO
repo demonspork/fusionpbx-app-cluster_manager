@@ -1,5 +1,3 @@
-## Swap out the domain_ permissions for cluster_ permissions 
-
 ## Create DB Table or Config File for Node list. currently in default settings. Leaning towards configuration file in /etc/fusionpbx because of security implications of including it elsewhere
 
 ## Handle errors like blank selections and API timeouts/failures
@@ -8,12 +6,10 @@
 
 ## Decide whether to handle secondary server in this app or just manage it with the endpoint group features in dsiprouter
 
-## Use variables to set SIP Port for SRV records
-
 ## Add in ability to set PTR records
 
 ## Figure out approach to "Protect" a did in the mappings in case we need to set it to something custom in dsiprouter
 
 ## Need to implement some POST security, validate the selected_node inputs that they contain valid node DNS names from the pre-configured list of fusionpbx nodes.
 
-## Support multipled HostedZones better as well as sub-account permissions
+## Support multiple HostedZones better as well as sub-account permissions

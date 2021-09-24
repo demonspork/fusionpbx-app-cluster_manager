@@ -33,7 +33,7 @@
 
 
 //check permission
-	if (permission_exists('domain_all') && permission_exists('domain_view')) {
+	if (permission_exists('cluster_all') && permission_exists('cluster_view')) {
 		//access granted
 	}
 	else {
@@ -63,25 +63,25 @@
 	if ($action != '' && is_array($domains) && @sizeof($domains) != 0) {
 		switch ($action) {
 			case 'update':
-				if (permission_exists('domain_add')) {
-					set_dns($_POST['domains'], $nodes);
+				if (permission_exists('cluster_edit')) {
+					set_dns($_POST['domains'], $nodes, $_SESSION['cluster_manager']['hostedzoneid']['text']);
 					sync_dsiprouter_destinations($_POST['domains']);
 				}
 				break;
 			case 'toggle':
-				if (permission_exists('domain_edit')) {
+				if (permission_exists('cluster_edit')) {
 					$obj = new domains;
 					$obj->toggle($domains);
 				}
 				break;
 			case 'delete':
-				if (permission_exists('domain_delete')) {
+				if (permission_exists('cluster_delete')) {
 					$obj = new domains;
 					$obj->delete($domains);
 				}
 				break;
 			case 'kamreload':
-				if (permission_exists('domain_add')) {
+				if (permission_exists('cluster_edit')) {
 					reload_kamailio();
 				}
 		}
@@ -134,7 +134,7 @@
 	unset($sql, $parameters);
 
 //get the dns status
-	$dns_status = dns_status($domains);
+	$dns_status = dns_status($domains, $_SESSION['cluster_manager']['hostedzoneid']['text']);
 
 //get the destinations and inboundmappings per domain
 	if (is_array($domains) && @sizeof($domains) != 0) {
@@ -187,7 +187,7 @@
 	if ($kamreload == "true") {
 		echo "<p style='color:red'>Kamailio Needs Reloaded</p>";
 	}
-	if (permission_exists('domain_edit') && $domains) {
+	if (permission_exists('cluster_edit') && $domains) {
 		echo button::create(['type'=>'button','label'=>'Update','icon'=>$_SESSION['theme']['button_icon_toggle'],'name'=>'btn_update','onclick'=>"list_action_set('update'); list_form_submit('form_list');"]);
 	}
 	echo button::create(['type'=>'button','label'=>'Reload Kamailio','icon'=>'sync-alt','name'=>'btn_kamreload','onclick'=>"list_action_set('kamreload'); list_form_submit('form_list');"]);
@@ -203,10 +203,10 @@
 	echo "	<div style='clear: both;'></div>\n";
 	echo "</div>\n";
 
-	if (permission_exists('domain_edit') && $domains) {
+	if (permission_exists('cluster_edit') && $domains) {
 		echo modal::create(['id'=>'modal-toggle','type'=>'toggle','actions'=>button::create(['type'=>'button','label'=>$text['button-continue'],'icon'=>'check','id'=>'btn_toggle','style'=>'float: right; margin-left: 15px;','collapse'=>'never','onclick'=>"modal_close(); list_action_set('toggle'); list_form_submit('form_list');"])]);
 	}
- 	if (permission_exists('domain_delete') && $domains) {
+ 	if (permission_exists('cluster_delete') && $domains) {
 		echo modal::create(['id'=>'modal-delete','type'=>'delete','actions'=>button::create(['type'=>'button','label'=>$text['button-continue'],'icon'=>'check','id'=>'btn_delete_domain','style'=>'float: right; margin-left: 15px;','collapse'=>'never','onclick'=>"modal_close(); list_action_set('delete'); list_form_submit('form_list');"])]);
  	}
 
@@ -219,12 +219,12 @@
 
 	echo "<table class='list'>\n";
 	echo "<tr class='list-header'>\n";
-	if (permission_exists('domain_edit') || permission_exists('domain_delete')) {
+	if (permission_exists('cluster_edit') || permission_exists('cluster_delete')) {
 		echo "	<th class='checkbox'>\n";
 		echo "		<input type='checkbox' id='checkbox_all' name='checkbox_all' onclick='list_all_toggle();' ".($domains ?: "style='visibility: hidden;'").">\n";
 		echo "	</th>\n";
 	}
-	if ($_GET['show'] == 'all' && permission_exists('domain_all')) {
+	if ($_GET['show'] == 'all' && permission_exists('cluster_all')) {
 		echo th_order_by('domain_name', $text['label-domain'], $order_by, $order);
 	}
 	echo th_order_by('domain_name', $text['label-domain_name'], $order_by, $order);
@@ -232,7 +232,7 @@
 	echo th_order_by('dns_status', 'DNS Status', $order_by, $order); 
 	echo "  <th>SBC Status</th>\n";
 	echo "	<th class='hide-sm-dn'>".$text['label-domain_description']."</th>\n";
-	if (permission_exists('domain_edit') && $_SESSION['theme']['list_row_edit_button']['boolean'] == 'true') {
+	if (permission_exists('cluster_edit') && $_SESSION['theme']['list_row_edit_button']['boolean'] == 'true') {
 		echo "	<td class='action-button'>&nbsp;</td>\n";
 	}
 	echo "</tr>\n";
@@ -245,17 +245,17 @@
 			}
 
 			echo "<tr class='list-row' href='".$list_row_url."'>\n";
-			if (permission_exists('domain_edit') || permission_exists('domain_delete')) {
+			if (permission_exists('cluster_edit') || permission_exists('cluster_delete')) {
 				echo "	<td class='checkbox'>\n";
 				echo "		<input type='checkbox' name='domains[$x][checked]' id='checkbox_".$x."' value='true' onclick=\"if (!this.checked) { document.getElementById('checkbox_all').checked = false; }\">\n";
 				echo "		<input type='hidden' name='domains[$x][domain_name]' value='".escape($row['domain_name'])."' />\n";
 				echo "	</td>\n";
 			}
-			if ($_GET['show'] == 'all' && permission_exists('domain_all')) {
+			if ($_GET['show'] == 'all' && permission_exists('cluster_all')) {
 				echo "	<td>".escape($_SESSION['domains'][$row['domain_uuid']]['domain_name'])."</td>\n";
 			}
 			echo "	<td>\n";
-			if (permission_exists('domain_edit')) {
+			if (permission_exists('cluster_edit')) {
 				echo "	<a href='".$list_row_url."' title=\"".$text['button-edit']."\">".escape($row['domain_name'])."</a>\n";
 			}
 			else {
@@ -288,7 +288,7 @@
 			echo count($synced_destnations[$row['domain_name']])." / ".count($domain_destinations[$row['domain_name']]);
 			echo "  </td>\n";
 			echo "	<td class='description overflow hide-sm-dn'>".escape($row['domain_description'])."</td>\n";
-			if (permission_exists('domain_edit') && $_SESSION['theme']['list_row_edit_button']['boolean'] == 'true') {
+			if (permission_exists('cluster_edit') && $_SESSION['theme']['list_row_edit_button']['boolean'] == 'true') {
 				echo "	<td class='action-button'>\n";
 				echo button::create(['type'=>'button','title'=>$text['button-edit'],'icon'=>$_SESSION['theme']['button_icon_edit'],'link'=>$list_row_url]);
 				echo "	</td>\n";

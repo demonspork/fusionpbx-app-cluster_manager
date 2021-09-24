@@ -96,6 +96,7 @@ function sync_dsiprouter_destinations(array $domains) {
                 "name" => $row['domain_name']
             );
 
+            curl_setopt($request, CURLOPT_CUSTOMREQUEST, null);
             curl_setopt($request, CURLOPT_URL, $_SESSION['cluster_manager']['api_url']['text']."/inboundmapping");
             curl_setopt($request, CURLOPT_POSTFIELDS, json_encode($body));
 
@@ -112,13 +113,13 @@ function sync_dsiprouter_destinations(array $domains) {
             if ($response_array->msg == "Duplicate DID's are not allowed") {
                 $body = array(
                     "did" => $destination['destination_number'],
-                    "servers" => array ( "67", "69" ),
+                    "servers" => array ( $selected_node_endpoint ),
                     "name" => $row['domain_name']
                 );
 
-                $url = $_SESSION['cluster_manager']['api_url']['text']."/inboundmapping"."?did=".$destination['destination_number'];
+                $puturl = $_SESSION['cluster_manager']['api_url']['text']."/inboundmapping"."?did=".$destination['destination_number'];
     
-                curl_setopt($request, CURLOPT_URL, $url);
+                curl_setopt($request, CURLOPT_URL, $puturl);
                 curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'PUT');
                 curl_setopt($request, CURLOPT_POSTFIELDS, json_encode($body));
                 $response = curl_exec($request);
@@ -129,8 +130,9 @@ function sync_dsiprouter_destinations(array $domains) {
                 }
             }
             
-            //header('Content-type: text/javascript');
-            //echo json_encode($body);
+            // header('Content-type: text/javascript');
+            // echo $puturl.'<br>\n';
+            // echo json_encode($body).'<br>\n';
             // echo $response; 
 
         }//end foreach destinations loop
@@ -142,6 +144,7 @@ function sync_dsiprouter_destinations(array $domains) {
     // rewind($verbose);
     // $verboseLog = stream_get_contents($verbose);
     // echo "Verbose information:\n<pre>", htmlspecialchars($verboseLog), "</pre>\n";
+    // exit;
     return $verbose;
 
 }
@@ -177,7 +180,7 @@ function get_dsiprouter_destinations() {
     return $response_array;
 }
 
-function dns_status(array $domains, $zone = '/hostedzone/Z1CZRQEKH1BFFA', $credentials = '/etc/fusionpbx/aws-config.php') {
+function dns_status(array $domains, $zone, $credentials = '/etc/fusionpbx/aws-config.php') {
     if ($domains) {
         
         $credentials = require_once($credentials);
@@ -257,101 +260,140 @@ function dns_status(array $domains, $zone = '/hostedzone/Z1CZRQEKH1BFFA', $crede
     }
 }
 
-function set_dns(array $domains, array $nodes, $credentials = '/etc/fusionpbx/aws-config.php', $zone = '/hostedzone/Z1CZRQEKH1BFFA') {
+function set_dns(array $domains, array $nodes, $zone, $credentials = '/etc/fusionpbx/aws-config.php') {
     if ($domains && $nodes) {
         
-        //$zone = $_SESSION['default_settings']['aws']['HostedZoneId']['text'];
-
         $credentials = require_once($credentials);
         $route53 = new Route53Client($credentials);
 
-        foreach ($domains as $domain) {
-            if ($domain['checked'] == 'true') {
-                $changes[] = [
-                    'Action' => 'UPSERT',
-                    'ResourceRecordSet' => [
-                        'Name' => $domain['domain_name'],
-                        'ResourceRecords' => [
-                            [
-                                'Value' => $domain['selected_node'],
-                            ],
-                        ],
-                        'TTL' => 60,
-                        'Type' => 'CNAME',
-                    ],  
-                ];
-                if ($_SESSION['cluster_manager']['srv_records']['bool'] == 'true') {
-                    $changes[] = [
-                        'Action' => 'UPSERT',
-                        'ResourceRecordSet' => [
-                            'Name' => '_sip._tls.'.$domain['domain_name'],
-                            'ResourceRecords' => [
-                                [
-                                    'Value' => '10 0 5071 '.$domain['selected_node'],
-                                ],
-                                // [
-                                //     'Value' => '30 0 5071 '.$nodes[1],
-                                // ],
-                            ],
-                            'TTL' => 60,
-                            'Type' => 'SRV',
-                        ],  
-                    ];
-                    $changes[] = [
-                        'Action' => 'UPSERT',
-                        'ResourceRecordSet' => [
-                            'Name' => '_sip._tcp.'.$domain['domain_name'],
-                            'ResourceRecords' => [
-                                [
-                                    'Value' => '10 0 5070 '.$domain['selected_node'],
-                                ],
-                                // [
-                                //     'Value' => '30 0 5070 '.$nodes[1],
-                                // ],
-                            ],
-                            'TTL' => 60,
-                            'Type' => 'SRV',
-                        ],
-                    ];
-                    $changes[] = [
-                        'Action' => 'UPSERT',
-                        'ResourceRecordSet' => [
-                            'Name' => '_sip._udp.'.$domain['domain_name'],
-                            'ResourceRecords' => [
-                                [
-                                    'Value' => '10 0 5070 '.$domain['selected_node'],
-                                ],
-                                // [
-                                //     'Value' => '30 0 5070 '.$nodes[1],
-                                // ],
-                            ],
-                            'TTL' => 60,
-                            'Type' => 'SRV',
-                        ],
-                    ];
-                }// end if for SRV records
+        $sql = "select * from v_domain_settings as ds ";
+        $sql .= "left join v_domains as d ";
+        $sql .= "on d.domain_uuid = ds.domain_uuid ";
+        $sql .= "where ds.domain_setting_enabled = 'true' ";
+        $sql .= "and ds.domain_setting_category = 'cluster_manager' ";
+        $sql .= "order by ds.domain_setting_order asc ";
+        $database = new database;
+        $result = $database->select($sql, $parameters, 'all');
+
+        if (is_array($result) && @sizeof($result) != 0) {
+            foreach ($result as $row) {
+                $name = $row['domain_setting_name'];
+                $category = $row['domain_setting_category'];
+                $subcategory = $row['domain_setting_subcategory'];
+            }
+            //set the settings as an array
+            foreach ($result as $row) {
+                $name = $row['domain_setting_name'];
+                $category = $row['domain_setting_category'];
+                $subcategory = $row['domain_setting_subcategory'];
+                if (strlen($subcategory) == 0) {
+                    if ($name == "array") {
+                        $domain_settings[$row['domain_name']][$category][] = $row['domain_setting_value'];
+                    }
+                    else {
+                        $domain_settings[$row['domain_name']][$category][$name] = $row['domain_setting_value'];
+                    }
+                }
+                else {
+                    if ($name == "array") {
+                        $domain_settings[$row['domain_name']][$category][$subcategory][] = $row['domain_setting_value'];
+                    }
+                    else {
+                        $domain_settings[$row['domain_name']][$category][$subcategory][$name] = $row['domain_setting_value'];
+                    }
+                }
             }
         }
+        unset($sql, $result, $parameters);
 
-        // $request = [
-        //     'ChangeBatch' => [
-        //         'Changes' => $changes,
-        //         'Comment' => 'Created by Decibel DNS API',
-        //     ],
-        //     'HostedZoneId' => $zone,
-        // ];
+        foreach ($domains as $domain) {
+
+            $tls_port = $domain_settings[$domain['domain_name']]['cluster_manager']['tls_port']['numeric'] ?: $_SESSION['cluster_manager']['tls_port']['numeric'];
+            $tcp_port = $domain_settings[$domain['domain_name']]['cluster_manager']['tcp_port']['numeric'] ?: $_SESSION['cluster_manager']['tcp_port']['numeric'];
+            $udp_port = $domain_settings[$domain['domain_name']]['cluster_manager']['udp_port']['numeric'] ?: $_SESSION['cluster_manager']['udp_port']['numeric'];
+
+            if (isset($domain['selected_node'])) {
+                if ($domain['checked'] == 'true') {
+                    $changes[] = [
+                        'Action' => 'UPSERT',
+                        'ResourceRecordSet' => [
+                            'Name' => $domain['domain_name'],
+                            'ResourceRecords' => [
+                                [
+                                    'Value' => $domain['selected_node'],
+                                ],
+                            ],
+                            'TTL' => 60,
+                            'Type' => 'CNAME',
+                        ],  
+                    ];
+                    if ($_SESSION['cluster_manager']['srv_records']['bool'] == 'true') {
+                        $changes[] = [
+                            'Action' => 'UPSERT',
+                            'ResourceRecordSet' => [
+                                'Name' => '_sip._tls.'.$domain['domain_name'],
+                                'ResourceRecords' => [
+                                    [
+                                        'Value' => '10 0 '.$tls_port.' '.$domain['selected_node'],
+                                    ],
+                                    // [
+                                    //     'Value' => '30 0 $tls_port '.$nodes[1],
+                                    // ],
+                                ],
+                                'TTL' => 60,
+                                'Type' => 'SRV',
+                            ],  
+                        ];
+                        $changes[] = [
+                            'Action' => 'UPSERT',
+                            'ResourceRecordSet' => [
+                                'Name' => '_sip._tcp.'.$domain['domain_name'],
+                                'ResourceRecords' => [
+                                    [
+                                        'Value' => '10 0 '.$tcp_port.' '.$domain['selected_node'],
+                                    ],
+                                    // [
+                                    //     'Value' => '30 0 $tcp_port '.$nodes[1],
+                                    // ],
+                                ],
+                                'TTL' => 60,
+                                'Type' => 'SRV',
+                            ],
+                        ];
+                        $changes[] = [
+                            'Action' => 'UPSERT',
+                            'ResourceRecordSet' => [
+                                'Name' => '_sip._udp.'.$domain['domain_name'],
+                                'ResourceRecords' => [
+                                    [
+                                        'Value' => '10 0 '.$udp_port.' '.$domain['selected_node'],
+                                    ],
+                                    // [
+                                    //     'Value' => '30 0 $udp_port '.$nodes[1],
+                                    // ],
+                                ],
+                                'TTL' => 60,
+                                'Type' => 'SRV',
+                            ],
+                        ];
+                    }// end if for SRV records
+                }
+            }// end if for checking selections
+        }
+
         // header('Content-type: text/javascript');
-        // echo json_encode($request, JSON_PRETTY_PRINT);
+        // echo json_encode($changes, JSON_PRETTY_PRINT);
         // exit;
 
-
-        $result = $route53->changeResourceRecordSets([
-            'ChangeBatch' => [
-                'Changes' => $changes,
-                'Comment' => 'Created by Decibel DNS API',
-            ],
-            'HostedZoneId' => $zone,
-        ]);
+        if ($changes) { 
+            $result = $route53->changeResourceRecordSets([
+                'ChangeBatch' => [
+                    'Changes' => $changes,
+                    'Comment' => 'Created by Decibel DNS API',
+                ],
+                'HostedZoneId' => $zone,
+            ]);         
+        }
 
         return $result;
     }
